@@ -93,4 +93,20 @@ class SortTest {
                 71, 39, 39, 90, 83, 65, 63, 51, 95, 93, 61, 53,  3, 16, 67, 76, 88]
         Arrays.sort(array)
     }
+
+    /*
+     * Sorting methods for float and double primitive types.
+     * float and double sorts are identical.
+     * float sort is the same as int sort with extra sorting
+     * for -0.0 and NaN.
+     */
+
+    @Test
+    void sortFloats() {
+        float nz = 0.0f / -1 // Java -0.0f
+        float[] array = [
+                -40.1, 5.2, Float.NaN, -46.3, 0.0f, nz, 40.4, nz, Float.NaN,
+                29.5, Float.POSITIVE_INFINITY, 75.6, Float.NEGATIVE_INFINITY, 24.7]
+        Arrays.sort(array)
+    }
 }
