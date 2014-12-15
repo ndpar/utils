@@ -4,15 +4,19 @@ import org.junit.Test
 
 class SortTest {
 
+    /*
+     * Sorting methods for seven primitive types.
+     */
+
     @Test
-    void testInsertionSort() {
+    void insertionSort_smallArray() {
         // array length < 47
         int[] array = [40, 5, 69, 46, 34, 40, 46, 84, 29, 8, 75, 97, 24]
         Arrays.sort(array)
     }
 
     @Test
-    void testDualPivotQuicksort() {
+    void dualPivotQuicksort_mediumArray() {
         // array length < 286
         int[] array = [90, 47, 58, 29, 22, 32, 55, 5, 55, 73, 58, 50, 40, 5, 69, 46, 34, 40, 46, 84, 29, 8, 75, 97, 24,
                        40, 21, 82, 77, 9, 63, 92, 51, 92, 39, 15, 43, 89, 36, 69, 40, 16, 23, 2, 29, 91, 57, 43, 55, 22]
@@ -23,7 +27,7 @@ class SortTest {
     }
 
     @Test
-    void testDualPivotQuicksortLargeCenterPart() {
+    void dualPivotQuicksort_medidumArray_largeCenterPart() {
         // array length < 286
         int[] array = [90, 47, 58, 29, 42, 32, 55, 55, 55, 43, 58, 50, 40, 36, 59, 46, 44, 40, 46, 44, 29, 68, 75, 97, 24,
                        40, 58, 42, 37, 49, 43, 92, 51, 92, 39, 15, 43, 39, 36, 69, 40, 16, 23, 42, 39, 91, 57, 43, 55, 22]
@@ -33,7 +37,7 @@ class SortTest {
     }
 
     @Test
-    void testQuicksortEqualElements() {
+    void quicksort_mediumArray_equalPivotalElements() {
         // array length < 286
         int[] array = [90, 47, 58, 29, 22, 32, 55, 5, 55, 73, 58, 50, 40, 5, 69, 46, 34, 40, 46, 84, 29, 8, 75, 97, 24,
                        40, 21, 82, 77, 9, 63, 92, 51, 92, 39, 15, 43, 89, 40, 69, 40, 16, 23, 2, 29, 91, 57, 43, 55, 22]
@@ -43,7 +47,7 @@ class SortTest {
     }
 
     @Test
-    void testQuicksortHighlyUnstructuredArray() {
+    void quicksort_bigArray_highlyUnstructured() {
         // array length >= 286
         int[] array = [
                 90, 47, 58, 29, 22, 32, 55,  5, 55, 73, 58, 50, 40,  5, 69, 46, 34,
@@ -67,8 +71,8 @@ class SortTest {
     }
 
     @Test
-    void testMergesort() {
-        // array length >= 286, many sorted chunks
+    void mergesort_bigArray_manySortedChunks() {
+        // array length >= 286
         int[] array = [
                 12, 20, 45, 88, 98, 10, 13, 24, 41, 46, 13, 58, 68, 81, 89,  8, 22,
                 48, 64, 98, 87, 72, 62, 57, 10, 14, 32, 38, 39, 42, 15, 25, 34, 37,
