@@ -133,4 +133,24 @@ class SortTest {
                 29.5, Float.POSITIVE_INFINITY, 75.6, Float.NEGATIVE_INFINITY, 24.7]
         Arrays.sort(array)
     }
+
+    /*
+     * Sorting methods for byte primitive type.
+     * Insertion sort for small arrays, counting sort otherwise.
+     */
+
+    @Test
+    void countingSort_byteArray() {
+        // array length >= 29
+        byte[] array = [
+                90, 47, 58, 29, 22, 32, 55,  5, 55, 73, 58, 50, 40,  5, 69, 46, 34,
+                40, 46, 84, 29,  8, 75, 97, 24, 40, 21, 82, 77,  9, 63, 92, 51, 92]
+        Arrays.sort(array)
+    }
+
+    /*
+     * Sorting methods for char and short primitive types.
+     * Counting sort for large arrays (length > 3200),
+     * otherwise the same as int sorting.
+     */
 }
