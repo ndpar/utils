@@ -6,14 +6,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
+import static java.util.Arrays.copyOfRange;
+import static java.util.Arrays.fill;
 import static javax.xml.bind.DatatypeConverter.parseHexBinary;
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
 public class BlockCipherModes {
 
     private static final int BLOCK = 128 / 8; // AES 128 bit
+    private static final String ENC = "UTF-8";
 
     private Cipher cipher;
 
@@ -27,23 +29,23 @@ public class BlockCipherModes {
         }
     }
 
+    private SecretKeySpec keySpec(String key) {
+        return new SecretKeySpec(parseHexBinary(key), "AES");
+    }
+
     public String encryptCbc(String encryptionKey, String ivs, String plainText) throws Exception {
         SecretKeySpec key = keySpec(encryptionKey);
-        int padLength = padLength(plainText.length(), BLOCK);
+        int padLength = padLength(plainText, BLOCK);
         if (padLength == 0) padLength = BLOCK;
-        byte[] result = Arrays.copyOfRange(plainText.getBytes("UTF-8"), 0, plainText.length() + padLength);
-        Arrays.fill(result, result.length - padLength, result.length, (byte) padLength);
+        byte[] result = copyOfRange(plainText.getBytes(ENC), 0, plainText.length() + padLength);
+        fill(result, result.length - padLength, result.length, (byte) padLength);
         byte[] iv = parseHexBinary(ivs);
         for (int b = 0; BLOCK * b < result.length; b++) {
             cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(iv));
-            iv = cipher.doFinal(Arrays.copyOfRange(result, BLOCK * b, BLOCK * (b + 1)));
+            iv = cipher.doFinal(copyOfRange(result, BLOCK * b, BLOCK * (b + 1)));
             System.arraycopy(iv, 0, result, BLOCK * b, BLOCK);
         }
         return (ivs + printHexBinary(result)).toLowerCase();
-    }
-
-    private SecretKeySpec keySpec(String key) {
-        return new SecretKeySpec(parseHexBinary(key), "AES");
     }
 
     public String decryptCbc(String encryptionKey, String cipherText) throws Exception {
@@ -56,7 +58,7 @@ public class BlockCipherModes {
             byte[] m = cipher.doFinal(c[i]);
             System.arraycopy(m, 0, result, BLOCK * (i - 1), BLOCK);
         }
-        return new String(trimPadding(result), "UTF-8");
+        return new String(trimPadding(result), ENC);
     }
 
     private byte[][] split16(byte[] bytes) {
@@ -69,36 +71,15 @@ public class BlockCipherModes {
 
     private byte[] trimPadding(byte[] text) {
         int n = text[text.length - 1]; // last byte contains the length of pad
-        return Arrays.copyOfRange(text, 0, text.length - n);
+        return copyOfRange(text, 0, text.length - n);
     }
 
-    public String encryptCtr(String encryptionKey, String ivs, String plainText) throws Exception {
-        int padLength = padLength(plainText.length(), BLOCK);
-        byte[] result = Arrays.copyOfRange(plainText.getBytes("UTF-8"), 0, plainText.length() + padLength);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec(encryptionKey), new IvParameterSpec(new byte[BLOCK]));
-        BigInteger iv = new BigInteger(parseHexBinary(ivs));
-        for (int b = 0; BLOCK * b < result.length; b++) {
-            byte[] biv = add(iv, b).toByteArray();
-            byte[] m = xor(cipher.doFinal(biv), Arrays.copyOfRange(result, BLOCK * b, BLOCK * (b + 1)));
-            System.arraycopy(m, 0, result, BLOCK * b, BLOCK);
-
-        }
-        return (ivs + printHexBinary(Arrays.copyOfRange(result, 0, result.length - padLength))).toLowerCase();
+    private int padLength(String string, int multiples) {
+        return padLength(string.length(), multiples);
     }
 
-    public String decryptCtr(String encryptionKey, String cipherText) throws Exception {
-        byte[] cb = parseHexBinary(cipherText);
-        int padLength = padLength(cb.length, BLOCK);
-        byte[][] c = split16(pad(cb, padLength));
-        BigInteger iv = new BigInteger(c[0]);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec(encryptionKey), new IvParameterSpec(new byte[BLOCK]));
-        byte[] result = new byte[BLOCK * (c.length - 1)];
-        for (int i = 1; i < c.length; i++) { // skip iv
-            byte[] biv = add(iv, i - 1).toByteArray();
-            byte[] m = xor(cipher.doFinal(biv), c[i]);
-            System.arraycopy(m, 0, result, BLOCK * (i - 1), BLOCK);
-        }
-        return new String(Arrays.copyOfRange(result, 0, result.length - padLength), "UTF-8");
+    private int padLength(byte[] bytes, int multiples) {
+        return padLength(bytes.length, multiples);
     }
 
     private int padLength(int length, int multiples) {
@@ -106,8 +87,18 @@ public class BlockCipherModes {
         return (multiples - length) % multiples;
     }
 
-    private byte[] pad(byte[] text, int padLength) {
-        return Arrays.copyOfRange(text, 0, text.length + padLength);
+    private byte[] ctr(String encryptionKey, byte[] ivs, byte[] plainText) throws Exception {
+        int padLength = padLength(plainText, BLOCK);
+        byte[] result = copyOfRange(plainText, 0, plainText.length + padLength);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec(encryptionKey), new IvParameterSpec(new byte[BLOCK]));
+        BigInteger iv = new BigInteger(ivs);
+        for (int b = 0; BLOCK * b < result.length; b++) {
+            byte[] biv = add(iv, b).toByteArray();
+            byte[] m = xor(cipher.doFinal(biv), copyOfRange(result, BLOCK * b, BLOCK * (b + 1)));
+            System.arraycopy(m, 0, result, BLOCK * b, BLOCK);
+
+        }
+        return copyOfRange(result, 0, result.length - padLength);
     }
 
     private BigInteger add(BigInteger bi, int i) {
@@ -118,5 +109,16 @@ public class BlockCipherModes {
         assert a1.length == a2.length;
         for (int i = 0; i < a1.length; i++) a1[i] ^= a2[i];
         return a1;
+    }
+
+    public String encryptCtr(String encryptionKey, String ivs, String plainText) throws Exception {
+        byte[] result = ctr(encryptionKey, parseHexBinary(ivs), plainText.getBytes(ENC));
+        return (ivs + printHexBinary(result)).toLowerCase();
+    }
+
+    public String decryptCtr(String encryptionKey, String cipherText) throws Exception {
+        byte[] cb = parseHexBinary(cipherText);
+        byte[] result = ctr(encryptionKey, copyOfRange(cb, 0, BLOCK), copyOfRange(cb, BLOCK, cb.length));
+        return new String(result, ENC);
     }
 }
