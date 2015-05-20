@@ -87,6 +87,14 @@ public class BlockCipherModes {
         return (multiples - length) % multiples;
     }
 
+    public byte[] pad(byte[] bytes) {
+        int padLength = padLength(bytes, BLOCK);
+        byte[] result = new byte[bytes.length + padLength];
+        System.arraycopy(bytes, 0, result, 0, bytes.length);
+        for (int i = 0; i < padLength; i++) result[bytes.length + i] = (byte) padLength;
+        return result;
+    }
+
     private byte[] ctr(String encryptionKey, byte[] ivs, byte[] plainText) throws Exception {
         int padLength = padLength(plainText, BLOCK);
         byte[] result = copyOfRange(plainText, 0, plainText.length + padLength);
@@ -105,7 +113,7 @@ public class BlockCipherModes {
         return bi.add(BigInteger.valueOf(i));
     }
 
-    private byte[] xor(byte[] a1, byte[] a2) {
+    public byte[] xor(byte[] a1, byte[] a2) {
         assert a1.length == a2.length;
         for (int i = 0; i < a1.length; i++) a1[i] ^= a2[i];
         return a1;

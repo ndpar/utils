@@ -3,6 +3,9 @@ package com.ndpar.utils.crypto
 import org.junit.Before
 import org.junit.Test
 
+import static javax.xml.bind.DatatypeConverter.parseHexBinary
+import static javax.xml.bind.DatatypeConverter.printHexBinary
+
 class BlockCipherModesTest {
 
     private BlockCipherModes cipher
@@ -58,5 +61,21 @@ class BlockCipherModesTest {
     void decryptCtr_2() {
         def text = cipher.decryptCtr('36f18357be4dbd77f050515c73fcf9f2', '770b80259ec33beb2561358a9f2dc617e46218c0a53cbeca695ae45faa8952aa0e311bde9d4e01726d3184c34451')
         assert text == 'Always avoid the two time pad!'
+    }
+
+    @Test
+    void forgeCbcCipher() {
+        def cipherHex = '20814804c1767293b99f1d9cab3bc3e7ac1e37bfb15599e5f40eef805488281d'
+        def orig = 'Pay Bob 100$'
+        def forged = 'Pay Bob 500$'
+
+        byte[] iv = parseHexBinary(cipherHex)[0..15]
+        byte[] origBytes = cipher.pad(orig.bytes)
+        byte[] forgedBytes = cipher.pad(forged.bytes)
+
+        byte[] newIv = cipher.xor(iv, cipher.xor(origBytes, forgedBytes))
+        def newCipherHex = (printHexBinary(newIv) + cipherHex[32..-1]).toLowerCase()
+
+        assert newCipherHex == '20814804c1767293bd9f1d9cab3bc3e7ac1e37bfb15599e5f40eef805488281d'
     }
 }
