@@ -2,6 +2,7 @@ package com.ndpar.utils.crypto;
 
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -46,7 +47,7 @@ public class DesEncrypter {
         try {
             byte[] utf8 = str.getBytes("UTF8");
             byte[] enc = ecipher.doFinal(utf8);
-            return new sun.misc.BASE64Encoder().encode(enc);
+            return new String(Base64.getEncoder().encode(enc));
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -55,7 +56,7 @@ public class DesEncrypter {
 
     public String decrypt(String str) {
         try {
-            byte[] dec = new sun.misc.BASE64Decoder().decodeBuffer(str);
+            byte[] dec = Base64.getDecoder().decode(str);
             byte[] utf8 = dcipher.doFinal(dec);
             return new String(utf8, "UTF8");
 
