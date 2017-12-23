@@ -9,8 +9,8 @@ import static javax.xml.bind.DatatypeConverter.printHexBinary
 
 abstract class AesGcmCipher {
 
-    static String gmac(String key, String nonce, String data, int tagLen) {
-        aesGcm(key, nonce, '', data, tagLen)
+    static String gmac(String key, String nonce, String data) {
+        aesGcm(key, nonce, '', data, 128)
     }
 
     static String aesGcm(String key, String iv, String plaintext, String aad, int tagLen) {
